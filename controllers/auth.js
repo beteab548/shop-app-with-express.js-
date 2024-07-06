@@ -19,3 +19,13 @@ exports.getLogOut = (req, res, next) => {
     console.log(err);
   });
 };
+exports.getsignUp = (req, res, next) => {
+  res.render("auth/sign-up", {
+    pageTitle: "signup",
+    path: "signup",
+    isAuthenticated: req.session.isLoggedIn,
+  });
+};
+exports.postSignUp = (req, res, next) => {
+  res.redirect("/login");
+};
