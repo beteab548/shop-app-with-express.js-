@@ -8,11 +8,13 @@ const session = require("express-session");
 const mongoStore = require("connect-mongodb-session")(session);
 const user = require("./models/user");
 const errorController = require("./controllers/error");
-app.set("view engine", "ejs");
-app.set("views", "views");
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
 const authRoutes = require("./routes/auth");
+const csurf = require("csurf");
+const flash = require("connect-flash");
+app.set("view engine", "ejs");
+app.set("views", "views");
 const uri =
   "mongodb+srv://endoumamure:endou1234@cluster0.ewomkce.mongodb.net/shop?retryWrites=true&w=majority&appName=Cluster0";
 app.use(cookieParser());
@@ -25,22 +27,34 @@ app.use(
     store: store,
   })
 );
+app.use(bodyParser.urlencoded({ extended: false }));
+const csurfProtection = csurf();
+app.use(csurfProtection);
+app.use(flash());
 app.use((req, res, next) => {
-  user
-    .findById("6683113c066b950f5f242c5f")
-    .then((data) => {
-      req.user = data;
-    })
-    .then(() => {
-      next();
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  if (!req.session.user) {
+    return next();
+  } else {
+    user
+      .findById(req.session.user._id)
+      .then((data) => {
+        req.user = data;
+      })
+      .then(() => {
+        next();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+});
+app.use(express.static(path.join(__dirname, "public")));
+app.use((req, res, next) => {
+  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.csrfToken = req.csrfToken();
+  next();
 });
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, "public")));
 app.use("/admin", adminRoutes);
 app.use(authRoutes);
 app.use(shopRoutes);

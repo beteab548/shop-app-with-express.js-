@@ -35,10 +35,11 @@
           >Admin Products
         </a>
       </li>
-      <li class="main-header__item login">
-        <a class="<%= path === '/logout' ? 'active' : '' %>" href="/logout"
-          >logout</a
-        >
+      <li class="main-header__item">
+        <form action="/logout" method="post">
+          <input type="hidden" name="_csrf" value="<%= csrfToken%>" />
+          <button class="btnnew" type="submit">Logout</button>
+        </form>
       </li>
       <% } %>
     </ul>
@@ -50,7 +51,7 @@
         >
       </li>
       <li class="main-header__item login">
-        <a class="<%= path === '/login' ? 'active' : '' %>" href="/signup"
+        <a class="<%= path === '/signup' ? 'active' : '' %>" href="/signup"
           >signup</a
         >
       </li>

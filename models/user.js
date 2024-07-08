@@ -1,8 +1,8 @@
 const { Schema, model, Mongoose } = require("mongoose");
 const { schema, updateSearchIndex } = require("./product");
 const userSchema = new Schema({
-  name: String,
-  emial: String,
+  email: { type: String, unique: true, required: true },
+  password: { type: String, required: true },
   cart: {
     items: [
       {
@@ -34,7 +34,6 @@ userSchema.methods.addToCart = function (product) {
   }
   this.cart.items = updatedCart;
   return this.save();
-  
 };
 userSchema.methods.removeCartItem = function (prodId) {
   const updatedCart = this.cart.items.filter((p) => {
