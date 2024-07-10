@@ -1,8 +1,8 @@
+const { validationResult } = require("express-validator");
 const user = require("../models/user");
 const bcrypt = require("bcryptjs");
 exports.getLogin = (req, res, next) => {
   let message = req.flash("error");
-  console.log(message);
   if (message.length <= 0) {
     message = null;
   } else {
@@ -55,7 +55,7 @@ exports.postLogOut = (req, res, next) => {
 };
 exports.getsignUp = (req, res, next) => {
   let message = req.flash("error");
-  if (message.length <= 0) {
+  if (message.length === 0) {
     message = null;
   }
   res.render("auth/sign-up", {
@@ -65,21 +65,35 @@ exports.getsignUp = (req, res, next) => {
   });
 };
 exports.postSignUp = (req, res, next) => {
-  const { email, password } = req.body;
-  user.findOne({ email: email }).then((emailExist) => {
-    if (emailExist) {
-      req.flash("error", "email already exist");
-      return res.redirect("/signup");
-    }
-    bcrypt.hash(password, 12).then((hashedPwd) => {
-      user
-        .create({ email: email, password: hashedPwd })
-        .then(() => {
-          res.redirect("/login");
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+  const errors = validationResult(req).errors;
+  if (errors.length === 0) {
+    const { email, password } = req.body;
+    user.findOne({ email: email }).then((emailExist) => {
+      if (emailExist) {
+        req.flash("error", "email already exist");
+        return res.redirect("/signup");
+      }
+      bcrypt.hash(password, 12).then((hashedPwd) => {
+        user
+          .create({ email: email, password: hashedPwd })
+          .then(() => {
+            res.redirect("/login");
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      });
     });
+  } else {
+    req.flash("error", `${errors[0].msg}`);
+    return res.redirect("/signup");
+  }
+};
+exports.getResetpwd = (req, res, next) => {
+  req.flash("error", "This feature is not available right now!");
+  res.render("auth/reset-pwd", {
+    path: "/reset",
+    pageTitle: "reset password",
+    error: req.flash("error"),
   });
 };
