@@ -7,20 +7,20 @@
 
     <main>
         <% if (error) { %>
-            <div class="user-message user-message--error"><%= error %></div>
+            <div class="user-message user-message--error"><%=error.msg %></div>
         <% } %>
         <form class="login-form" action="/signup" method="POST">
             <div class="form-control">
                 <label for="email">E-Mail</label>
-                <input style="width: 300px; height: 40px;" name="email" id="email">
+                <input class="<%=invalidMarker === 'email' ? 'invalid': '' %>" style="width: 300px; height: 40px;" name="email" id="email" value="<%=inputValues.email%>">
             </div>
             <div class="form-control">
                 <label for="password">Password</label>
-                <input style="width: 300px; height: 40px;" type="password" name="password" id="password">
+                <input style="width: 300px; height: 40px;" type="password" name="password" id="password"  value="<%=inputValues.password%>" class="<%= invalidMarker === 'password' ? 'invalid':'' %>">
             </div>
             <div class="form-control">
                 <label for="confirmPassword">Confirm Password</label>
-                <input style="width: 300px; height: 40px;" type="password" name="confirmPassword" id="confirmPassword">
+                <input style="width: 300px; height: 40px;" type="password" name="confirmPassword" id="confirmPassword"  value="<%=inputValues.confirmPassword%>" class="<%= invalidMarker === 'confirmPassword' ? 'invalid':''%>">
             </div>
             <input type="hidden" name="_csrf" value="<%= csrfToken%>" />
 

@@ -7,12 +7,14 @@ const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const mongoStore = require("connect-mongodb-session")(session);
 const user = require("./models/user");
+const multer = require("multer");
 const errorController = require("./controllers/error");
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
 const authRoutes = require("./routes/auth");
 const csurf = require("csurf");
 const flash = require("connect-flash");
+const { error } = require("console");
 app.set("view engine", "ejs");
 app.set("views", "views");
 const uri =
@@ -58,7 +60,10 @@ app.use((req, res, next) => {
 app.use("/admin", adminRoutes);
 app.use(authRoutes);
 app.use(shopRoutes);
-
+app.use((error, req, res, next) => {
+  return res.redirect("/500");
+});
+app.get("/500", errorController.get500);
 app.use(errorController.get404);
 mongoose
   .connect(uri)

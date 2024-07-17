@@ -1,7 +1,7 @@
 const { Schema, model, Mongoose } = require("mongoose");
 const { schema, updateSearchIndex } = require("./product");
 const userSchema = new Schema({
-  email: { type: String, unique: true, required: true },
+  email: { type: String, required: true },
   password: { type: String, required: true },
   cart: {
     items: [

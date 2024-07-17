@@ -35,7 +35,9 @@ exports.postLogin = (req, res, next) => {
             }
           })
           .catch((err) => {
-            console.log(err);
+            const error = new Error(err);
+            error.httpStatusCode = 500;
+            return next(error);
           });
       } else {
         req.flash("error", "email was not found");
@@ -43,7 +45,9 @@ exports.postLogin = (req, res, next) => {
       }
     })
     .catch((err) => {
-      console.log(err);
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     });
 };
 
@@ -54,39 +58,51 @@ exports.postLogOut = (req, res, next) => {
   });
 };
 exports.getsignUp = (req, res, next) => {
-  let message = req.flash("error");
-  if (message.length === 0) {
-    message = null;
+  let errors = validationResult(req).errors;
+  if (errors.length === 0) {
+    errors[0] = null;
   }
   res.render("auth/sign-up", {
     pageTitle: "signup",
     path: "/signup",
-    error: message,
+    error: errors[0],
+    inputValues: {
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+    invalidMarker: null,
   });
 };
 exports.postSignUp = (req, res, next) => {
   const errors = validationResult(req).errors;
+  const invalidMarker = errors[0].path;
+  const { email, password, confirmPassword } = req.body;
   if (errors.length === 0) {
-    const { email, password } = req.body;
-    user.findOne({ email: email }).then((emailExist) => {
-      if (emailExist) {
-        req.flash("error", "email already exist");
-        return res.redirect("/signup");
-      }
-      bcrypt.hash(password, 12).then((hashedPwd) => {
-        user
-          .create({ email: email, password: hashedPwd })
-          .then(() => {
-            res.redirect("/login");
-          })
-          .catch((err) => {
-            console.log(err);
-          });
-      });
+    bcrypt.hash(password, 12).then((hashedPwd) => {
+      user
+        .create({ email: email, password: hashedPwd })
+        .then(() => {
+          res.redirect("/login");
+        })
+        .catch((err) => {
+          const error = new Error(err);
+          error.httpStatusCode = 500;
+          return next(error);
+        });
     });
   } else {
-    req.flash("error", `${errors[0].msg}`);
-    return res.redirect("/signup");
+    res.render("auth/sign-up", {
+      pageTitle: "signup",
+      path: "/signup",
+      error: errors[0],
+      inputValues: {
+        email: email,
+        password: password,
+        confirmPassword: confirmPassword,
+      },
+      invalidMarker: invalidMarker,
+    });
   }
 };
 exports.getResetpwd = (req, res, next) => {

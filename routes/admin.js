@@ -21,5 +21,4 @@ router.get("/edit-product/:productId", isAuth, adminController.getEditProduct);
 router.post("/edit-product", isAuth, adminController.postEditProduct);
 
 router.post("/delete-product", isAuth, adminController.postDeleteProduct);
-
 module.exports = router;
