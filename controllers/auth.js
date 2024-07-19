@@ -89,7 +89,8 @@ exports.postSignUp = (req, res, next) => {
           res.redirect("/login");
         })
         .catch((err) => {
-          console.log(err);
+          res.httpStatusCode = 500;
+          next(new Error(err));
         });
     });
   } else {

@@ -14,10 +14,8 @@ const shopRoutes = require("./routes/shop");
 const authRoutes = require("./routes/auth");
 const csurf = require("csurf");
 const flash = require("connect-flash");
-const { error } = require("console");
 app.set("view engine", "ejs");
 app.set("views", "views");
-// "mongodb+srv://endoumamure:endou1234@cluster0.ewomkce.mongodb.net/shop?retryWrites=true&w=majority&appName=Cluster0";
 const uri = "mongodb://0.0.0.0:27017/shop";
 app.use(cookieParser());
 const store = new mongoStore({ uri: uri, collection: "sessions" });
@@ -49,7 +47,6 @@ const fileFilter = (req, file, cb) => {
     cb(null, false);
   }
 };
-
 app.use(
   multer({ storage: fileStorage, fileFilter: fileFilter }).single("image")
 );
@@ -84,9 +81,9 @@ app.use((req, res, next) => {
 app.use("/admin", adminRoutes);
 app.use(authRoutes);
 app.use(shopRoutes);
-// app.use((error, req, res, next) => {
-//   return res.redirect("/500");
-// });
+app.use((error, req, res, next) => {
+  return res.redirect("/500");
+});
 app.get("/500", errorController.get500);
 app.use(errorController.get404);
 mongoose

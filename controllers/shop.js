@@ -1,5 +1,7 @@
 const product = require("../models/product");
 const Product = require("../models/product");
+const fs = require("fs");
+const path = require("path");
 exports.getProducts = (req, res, next) => {
   Product.find()
     .then((products) => {
@@ -85,15 +87,21 @@ exports.postCartDeleteProduct = (req, res, next) => {
     res.redirect("/cart");
   });
 };
-exports.getOrders = (req, res, next) => {
-  console.log(req.user.orders.items);
-  req.user.getOrders().then((data) => {
-    const product = [...data.orders.items];
+exports.getOrders = async (req, res, next) => {
+  const orders = await req.user.getOrders();
+  if (orders) {
     res.render("shop/orders", {
-      products: product,
+      products: orders,
       path: "/orders",
       pageTitle: "Your Orders",
     });
+  }
+};
+exports.getInvoice = (req, res, next) => {
+  fs.readFile("C:/Users/Super Pawn/Desktop/invoice.pdf", (err, fileData) => {
+    res.setHeader("content-type", "application/pdf");
+    res.setHeader("content-disposition", "inline; filename=invlice.doc");
+    res.send(fileData);
   });
 };
 // exports.getCheckout = (req, res, next) => {
