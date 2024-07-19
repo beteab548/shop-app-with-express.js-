@@ -76,7 +76,10 @@ exports.getsignUp = (req, res, next) => {
 };
 exports.postSignUp = (req, res, next) => {
   const errors = validationResult(req).errors;
-  const invalidMarker = errors[0].path;
+  let invalidMarker = null;
+  if (errors.length > 0) {
+    invalidMarker = errors[0].path;
+  }
   const { email, password, confirmPassword } = req.body;
   if (errors.length === 0) {
     bcrypt.hash(password, 12).then((hashedPwd) => {
@@ -86,9 +89,7 @@ exports.postSignUp = (req, res, next) => {
           res.redirect("/login");
         })
         .catch((err) => {
-          const error = new Error(err);
-          error.httpStatusCode = 500;
-          return next(error);
+          console.log(err);
         });
     });
   } else {

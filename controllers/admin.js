@@ -7,26 +7,28 @@ exports.getAddProduct = (req, res, next) => {
     editing: false,
   });
 };
-
 exports.postAddProduct = (req, res, next) => {
   const title = req.body.title;
-  const imageUrl = req.body.imageUrl;
+  const image = req.file;
   const price = req.body.price;
   const description = req.body.description;
+  console.log(image);
   product
     .create({
+      title: title,
       price: price,
-      imageUrl: imageUrl,
+      imageUrl: image.path,
       description: description,
       userId: req.user._id,
     })
-    .then((data) => {
+    .then(() => {
       res.redirect("/admin/products");
     })
     .catch((err) => {
-      const error = new Error(err);
-      error.httpStatusCode = 500;
-      return next(error);
+      console.log(err);
+      // const error = new Error(err);
+      // error.httpStatusCode = 500;
+      // return next(error);
     });
 };
 exports.getProducts = (req, res, next) => {
@@ -40,9 +42,10 @@ exports.getProducts = (req, res, next) => {
       });
     })
     .catch((err) => {
-      const error = new Error(err);
-      error.httpStatusCode = 500;
-      return next(error);
+      console.log(err);
+      // const error = new Error(err);
+      // error.httpStatusCode = 500;
+      // return next(error);
     });
 };
 exports.getEditProduct = (req, res, next) => {
@@ -75,15 +78,17 @@ exports.postEditProduct = (req, res, next) => {
   const prodId = new ObjectId(req.body.productId);
   const updatedTitle = req.body.title;
   const updatedPrice = req.body.price;
-  const updatedImageUrl = req.body.imageUrl;
+  const image = req.file;
   const updatedDesc = req.body.description;
   product
     .find({ _id: prodId, userId: req.user._id })
     .then((products) => {
       let productValue = products[0];
       if (products.length > 0) {
+        if (image) {
+          productValue.imageUrl = image.path;
+        }
         productValue.title = updatedTitle;
-        productValue.imageUrl = updatedImageUrl;
         productValue.price = updatedPrice;
         productValue.description = updatedDesc;
         return productValue.save();
@@ -104,7 +109,6 @@ exports.postEditProduct = (req, res, next) => {
 exports.postDeleteProduct = (req, res, next) => {
   const prodId = new ObjectId(req.body.productId);
   product.deleteOne({ _id: prodId, userId: req.user._id }).then(() => {
-    console.log("deleted successful");
     res.redirect("/admin/products");
   });
 };

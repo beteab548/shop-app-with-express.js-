@@ -69,7 +69,9 @@ exports.postCart = (req, res, next) => {
   product.findById(prodId).then((product) => {
     req.user
       .addToCart(product)
-      .then(() => {})
+      .then(() => {
+        res.redirect("/cart");
+      })
       .catch((err) => {
         const error = new Error(err);
         error.httpStatusCode = 500;
@@ -84,6 +86,7 @@ exports.postCartDeleteProduct = (req, res, next) => {
   });
 };
 exports.getOrders = (req, res, next) => {
+  console.log(req.user.orders.items);
   req.user.getOrders().then((data) => {
     const product = [...data.orders.items];
     res.render("shop/orders", {

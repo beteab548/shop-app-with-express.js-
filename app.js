@@ -17,8 +17,8 @@ const flash = require("connect-flash");
 const { error } = require("console");
 app.set("view engine", "ejs");
 app.set("views", "views");
-const uri =
-  "mongodb+srv://endoumamure:endou1234@cluster0.ewomkce.mongodb.net/shop?retryWrites=true&w=majority&appName=Cluster0";
+// "mongodb+srv://endoumamure:endou1234@cluster0.ewomkce.mongodb.net/shop?retryWrites=true&w=majority&appName=Cluster0";
+const uri = "mongodb://0.0.0.0:27017/shop";
 app.use(cookieParser());
 const store = new mongoStore({ uri: uri, collection: "sessions" });
 app.use(
@@ -28,6 +28,30 @@ app.use(
     saveUninitialized: false,
     store: store,
   })
+);
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "images");
+  },
+  filename: (req, file, cb) => {
+    cb(null, new Date().toISOString().replace(/:/g, "-") + file.originalname);
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/jpeg"
+  ) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+
+app.use(
+  multer({ storage: fileStorage, fileFilter: fileFilter }).single("image")
 );
 app.use(bodyParser.urlencoded({ extended: false }));
 const csurfProtection = csurf();
@@ -51,18 +75,18 @@ app.use((req, res, next) => {
   }
 });
 app.use(express.static(path.join(__dirname, "public")));
+app.use("/images", express.static(path.join(__dirname, "images")));
 app.use((req, res, next) => {
   res.locals.isAuthenticated = req.session.isLoggedIn;
   res.locals.csrfToken = req.csrfToken();
   next();
 });
-
 app.use("/admin", adminRoutes);
 app.use(authRoutes);
 app.use(shopRoutes);
-app.use((error, req, res, next) => {
-  return res.redirect("/500");
-});
+// app.use((error, req, res, next) => {
+//   return res.redirect("/500");
+// });
 app.get("/500", errorController.get500);
 app.use(errorController.get404);
 mongoose
