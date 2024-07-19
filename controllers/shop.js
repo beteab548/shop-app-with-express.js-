@@ -1,5 +1,6 @@
-const product = require("../models/product");
 const Product = require("../models/product");
+const orders = require("../models/orders");
+const user = require("../models/user");
 const fs = require("fs");
 const path = require("path");
 exports.getProducts = (req, res, next) => {
@@ -68,7 +69,7 @@ exports.getCart = (req, res, next) => {
 };
 exports.postCart = (req, res, next) => {
   const prodId = req.body.productId;
-  product.findById(prodId).then((product) => {
+  Product.findById(prodId).then((product) => {
     req.user
       .addToCart(product)
       .then(() => {
@@ -88,22 +89,55 @@ exports.postCartDeleteProduct = (req, res, next) => {
   });
 };
 exports.getOrders = async (req, res, next) => {
-  const orders = await req.user.getOrders();
-  if (orders) {
-    res.render("shop/orders", {
-      products: orders,
-      path: "/orders",
-      pageTitle: "Your Orders",
+  const cart = await req.user.getCart();
+  let totalQuantity = 0;
+  if (cart.length <= 0) {
+    orders.findOne({ userId: req.user._id }).then((order) => {
+      order.items.map((p) => {
+        totalQuantity = p.quantity + totalQuantity;
+      });
+      if (order) {
+        res.render("shop/orders", {
+          order: order,
+          path: "/orders",
+          pageTitle: "Your Orders",
+          totalQuantitys: totalQuantity,
+        });
+      }
     });
+  } else {
+    orders
+      .findOne({ userId: req.user._id })
+      .then(() => {
+        orders
+          .findOneAndUpdate({ items: cart, userId: req.user._id })
+          .then((order) => {
+            if (order) {
+              res.render("shop/orders", {
+                order: order,
+                path: "/orders",
+                pageTitle: "Your Orders",
+                totalQuantitys: totalQuantity,
+              });
+            }
+          });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }
+  req.user.cleanCart();
+  // orders.create({ items: cart, userId: req.user._id })
+  // .then(() => {
+  // });
 };
-exports.getInvoice = (req, res, next) => {
-  fs.readFile("C:/Users/Super Pawn/Desktop/invoice.pdf", (err, fileData) => {
-    res.setHeader("content-type", "application/pdf");
-    res.setHeader("content-disposition", "inline; filename=invlice.doc");
-    res.send(fileData);
-  });
-};
+// exports.getInvoice = (req, res, next) => {
+//   fs.readFile("C:/Users/Super Pawn/Desktop/invoice.pdf", (err, fileData) => {
+//     res.setHeader("content-type", "application/pdf");
+//     res.setHeader("content-disposition", "inline; filename=invlice.doc");
+//     res.send(fileData);
+//   });
+// };
 // exports.getCheckout = (req, res, next) => {
 //   res.render("shop/checkout", {
 //     path: "/checkout",

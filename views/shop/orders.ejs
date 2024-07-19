@@ -5,14 +5,13 @@
     <body>
         <%- include('../includes/navigation.ejs') %>
         <main>
-            <%if(products.length >0) { %>
+            <%if(order.items.length >0) { %>
                 <ul>
-<% products.forEach((p)=> { %>
 <li class="cart-items">
-            <%=p.productId%>
-            <%=p.quantity%>
+            <%=order._id%>
+            <hr>
+         <b> Total-quantities</b>  <%=totalQuantitys%>
         </li>
- <% }) %>  
 <a href="/invoice">invoice</a>
 </ul>
  <% }  else { %>

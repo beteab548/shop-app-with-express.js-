@@ -16,9 +16,6 @@ const userSchema = new Schema({
       },
     ],
   },
-  orders: {
-    items: [{}],
-  },
 });
 userSchema.methods.addToCart = function (product) {
   //check if product exist in the cart
@@ -36,6 +33,13 @@ userSchema.methods.addToCart = function (product) {
   this.cart.items = updatedCart;
   return this.save();
 };
+userSchema.methods.getCart = function () {
+  return Promise.resolve(this.cart.items);
+};
+userSchema.methods.cleanCart = function () {
+  this.cart.items = [];
+  return this.save();
+};
 userSchema.methods.removeCartItem = function (prodId) {
   const updatedCart = this.cart.items.filter((p) => {
     return p.productId.toString() !== prodId.toString();
@@ -44,19 +48,20 @@ userSchema.methods.removeCartItem = function (prodId) {
   return this.save();
 };
 userSchema.methods.getOrders = async function () {
-  if (this.cart.items.length > 0) {
-    const order = [...this.cart.items];
-    this.orders.items = order;
-    this.cart.items = [];
-    const orders = await this.save();
-    return Promise.resolve(orders);
-  } else {
-    if (this.orders.items.length > 0) {
-      return Promise.resolve(this.orders.items);
-    } else {
-      return Promise.resolve(this.orders.items);
-    }
-  }
+  return Promise.resolve(this.cart.items);
+  // if (this.cart.items.length > 0) {
+  //   const order = [...this.cart.items];
+  //   this.orders.items = order;
+  //   this.cart.items = [];
+  //   const orders = await this.save();
+  //   return Promise.resolve(orders);
+  // } else {
+  //   if (this.orders.items.length > 0) {
+  //     return Promise.resolve(this.orders.items);
+  //   } else {
+  //     return Promise.resolve(this.orders.items);
+  //   }
+  // }
 };
 const user = model("user", userSchema);
 module.exports = user;
