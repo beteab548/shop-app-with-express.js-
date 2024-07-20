@@ -1,8 +1,11 @@
 const Product = require("../models/product");
 const orders = require("../models/orders");
 const user = require("../models/user");
+const { ObjectId } = require("mongodb");
 const fs = require("fs");
 const path = require("path");
+const pdfDocument = require("pdfkit");
+const pdf = new pdfDocument();
 exports.getProducts = (req, res, next) => {
   Product.find()
     .then((products) => {
@@ -91,53 +94,69 @@ exports.postCartDeleteProduct = (req, res, next) => {
 exports.getOrders = async (req, res, next) => {
   const cart = await req.user.getCart();
   let totalQuantity = 0;
-  if (cart.length <= 0) {
-    orders.findOne({ userId: req.user._id }).then((order) => {
+  orders.findOne({ userId: req.user._id }).then((order) => {
+    if (!order) {
+      orders.create({ items: [], userId: req.user._id });
+      return res.redirect("/orders");
+    } else {
       order.items.map((p) => {
         totalQuantity = p.quantity + totalQuantity;
       });
-      if (order) {
+      if (cart.length <= 0) {
         res.render("shop/orders", {
           order: order,
           path: "/orders",
           pageTitle: "Your Orders",
           totalQuantitys: totalQuantity,
         });
-      }
-    });
-  } else {
-    orders
-      .findOne({ userId: req.user._id })
-      .then(() => {
-        orders
-          .findOneAndUpdate({ items: cart, userId: req.user._id })
-          .then((order) => {
-            if (order) {
+      } else {
+        orders.findOne({ userId: req.user._id }).then((order) => {
+          if (order) {
+            order.items = cart;
+            order.save().then(() => {
               res.render("shop/orders", {
                 order: order,
                 path: "/orders",
                 pageTitle: "Your Orders",
                 totalQuantitys: totalQuantity,
               });
-            }
-          });
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }
-  req.user.cleanCart();
-  // orders.create({ items: cart, userId: req.user._id })
-  // .then(() => {
-  // });
+            });
+          } else {
+            const err = new Error(
+              `no matching order found for the user with ID:${req.user._id}`
+            );
+            next(err);
+          }
+        });
+      }
+      req.user.cleanCart();
+    }
+  });
 };
-// exports.getInvoice = (req, res, next) => {
-//   fs.readFile("C:/Users/Super Pawn/Desktop/invoice.pdf", (err, fileData) => {
-//     res.setHeader("content-type", "application/pdf");
-//     res.setHeader("content-disposition", "inline; filename=invlice.doc");
-//     res.send(fileData);
-//   });
-// };
+exports.getInvoice = (req, res, next) => {
+  const orderId = req.params.orderId;
+  const invoiceName = "invoice" + orderId + ".pdf";
+  const invoicePath = path.join("invoice", invoiceName);
+  orders
+    .findById(orderId)
+    .then((order) => {
+      if (!order) {
+        return next(new Error("not elligible"));
+      }
+      if (order.userId.toString() !== req.user._id.toString()) {
+        return next(new Error("not elligible"));
+      }
+      res.setHeader("content-type", "application/pdf");
+      res.setHeader("content-disposition", `inline; filename=${orderId}.pdf`);
+      pdf.pipe(fs.createWriteStream(invoicePath));
+      pdf.pipe(res);
+      pdf.text("crowdStrike is a joke!");
+      pdf.end();
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
 // exports.getCheckout = (req, res, next) => {
 //   res.render("shop/checkout", {
 //     path: "/checkout",
