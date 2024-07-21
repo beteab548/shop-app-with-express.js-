@@ -1,5 +1,6 @@
 const product = require("../models/product");
 const { ObjectId } = require("mongodb");
+const fileHepler = require("../util/file-helper");
 exports.getAddProduct = (req, res, next) => {
   res.render("admin/edit-product", {
     pageTitle: "Add Product",
@@ -12,7 +13,6 @@ exports.postAddProduct = (req, res, next) => {
   const image = req.file;
   const price = req.body.price;
   const description = req.body.description;
-  console.log(image);
   product
     .create({
       title: title,
@@ -54,7 +54,6 @@ exports.getEditProduct = (req, res, next) => {
     return res.redirect("/");
   }
   const prodId = req.params.productId;
-  console.log(prodId);
   product
     .findById(prodId)
     .then((product) => {
@@ -77,9 +76,9 @@ exports.getEditProduct = (req, res, next) => {
 
 exports.postEditProduct = (req, res, next) => {
   const prodId = new ObjectId(req.body.productId);
+  const image = req.file;
   const updatedTitle = req.body.title;
   const updatedPrice = req.body.price;
-  const image = req.file;
   const updatedDesc = req.body.description;
   product
     .find({ _id: prodId, userId: req.user._id })
@@ -87,6 +86,7 @@ exports.postEditProduct = (req, res, next) => {
       let productValue = products[0];
       if (products.length > 0) {
         if (image) {
+          fileHepler(productValue.imageUrl);
           productValue.imageUrl = image.path;
         }
         productValue.title = updatedTitle;
@@ -101,15 +101,27 @@ exports.postEditProduct = (req, res, next) => {
       res.redirect("/admin/products");
     })
     .catch((err) => {
-      const error = new Error(err);
-      error.httpStatusCode = 500;
-      return next(error);
+      console.log(err);
+      // const error = new Error(err);
+      // error.httpStatusCode = 500;
+      // return next(error);
     });
 };
 
 exports.postDeleteProduct = (req, res, next) => {
   const prodId = new ObjectId(req.body.productId);
-  product.deleteOne({ _id: prodId, userId: req.user._id }).then(() => {
-    res.redirect("/admin/products");
-  });
+  product
+    .findById(prodId)
+    .then((product) => {
+      if (!product) {
+        return next(new Error("no product found"));
+      }
+      fileHepler(product.imageUrl);
+      product.deleteOne({ _id: prodId, userId: req.user._id }).then(() => {
+        res.redirect("/admin/products");
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 };

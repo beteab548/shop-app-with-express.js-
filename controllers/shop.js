@@ -139,6 +139,7 @@ exports.getInvoice = (req, res, next) => {
   const invoicePath = path.join("invoice", invoiceName);
   orders
     .findById(orderId)
+    .populate("items.productId")
     .then((order) => {
       if (!order) {
         return next(new Error("not elligible"));
@@ -150,7 +151,18 @@ exports.getInvoice = (req, res, next) => {
       res.setHeader("content-disposition", `inline; filename=${orderId}.pdf`);
       pdf.pipe(fs.createWriteStream(invoicePath));
       pdf.pipe(res);
-      pdf.text("crowdStrike is a joke!");
+      let toatlPrice = 0;
+      order.items.forEach((p) => {
+        const productsTitle = p.productId.title;
+        const quantity = p.quantity;
+        const price = p.productId.price;
+        toatlPrice = parseInt(p.productId.price) + parseInt(toatlPrice);
+        pdf.text(`product name :${productsTitle}`);
+        pdf.text("----------------------------");
+        pdf.text(`quantity:${quantity} * ${price}$`);
+        pdf.text("----------------------------");
+      });
+      pdf.text(`total price :${toatlPrice}$`);
       pdf.end();
     })
     .catch((err) => {
