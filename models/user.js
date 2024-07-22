@@ -1,6 +1,5 @@
 const { Schema, model, Mongoose } = require("mongoose");
 const { schema, updateSearchIndex } = require("./product");
-const { INTEGER } = require("sequelize");
 const userSchema = new Schema({
   email: { type: String, required: true },
   password: { type: String, required: true },
@@ -49,19 +48,6 @@ userSchema.methods.removeCartItem = function (prodId) {
 };
 userSchema.methods.getOrders = async function () {
   return Promise.resolve(this.cart.items);
-  // if (this.cart.items.length > 0) {
-  //   const order = [...this.cart.items];
-  //   this.orders.items = order;
-  //   this.cart.items = [];
-  //   const orders = await this.save();
-  //   return Promise.resolve(orders);
-  // } else {
-  //   if (this.orders.items.length > 0) {
-  //     return Promise.resolve(this.orders.items);
-  //   } else {
-  //     return Promise.resolve(this.orders.items);
-  //   }
-  // }
 };
 const user = model("user", userSchema);
 module.exports = user;

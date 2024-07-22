@@ -25,8 +25,22 @@
                            <%if(isAuthenticated) { %> <%- include('../includes/add-to-cart.ejs', {product: product}) %> <% }%>
                         </div>
                     </article>
-                <% } %>
-            </div>
+                    <% } %>
+                </div>
+                <section>
+                    <% if(currentPage==1 && nextPage!==1) { %>
+                    <a href="/?page=<%=currentPage%>"><%=currentPage%></a>
+                    <%}%>
+                    <% if(hasPreviousePage && previousePage!==currentPage){ %>
+                        <a href="/?page=<%=previousePage%>"><%=previousePage%></a>
+                        <% } %>
+                    <% if(hasNextPage && nextPage!==currentPage){ %>
+                    <a href="/?page=<%=nextPage%>"><%=nextPage%></a>
+                    <% } %>
+                    <% if(currentPage!==lastPage && nextPage!==lastPage) { %>
+                    <a href="/?page=<%=lastPage%>"><%=lastPage%></a>
+                    <% }%>
+                </section>
         <% } else { %>
             <h1>No Products Found!</h1>
         <% } %>
