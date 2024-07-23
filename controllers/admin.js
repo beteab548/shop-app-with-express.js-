@@ -1,6 +1,7 @@
 const product = require("../models/product");
 const { ObjectId } = require("mongodb");
 const fileHepler = require("../util/file-helper");
+const { header } = require("express-validator");
 exports.getAddProduct = (req, res, next) => {
   res.render("admin/edit-product", {
     pageTitle: "Add Product",
@@ -108,8 +109,8 @@ exports.postEditProduct = (req, res, next) => {
     });
 };
 
-exports.postDeleteProduct = (req, res, next) => {
-  const prodId = new ObjectId(req.body.productId);
+exports.deleteProduct = (req, res, next) => {
+  const prodId = new ObjectId(req.params.productId);
   product
     .findById(prodId)
     .then((product) => {
@@ -118,10 +119,11 @@ exports.postDeleteProduct = (req, res, next) => {
       }
       fileHepler(product.imageUrl);
       product.deleteOne({ _id: prodId, userId: req.user._id }).then(() => {
-        res.redirect("/admin/products");
+        res.status(200).json({ message: "successfully deleted an item!" });
       });
     })
     .catch((err) => {
+      res.status(500).json({ message: "error deleting an item!" });
       console.log(err);
     });
 };
