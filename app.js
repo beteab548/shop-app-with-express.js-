@@ -13,6 +13,8 @@ const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
 const authRoutes = require("./routes/auth");
 const csurf = require("csurf");
+const compression = require("compression");
+const helmet = require("helmet");
 const flash = require("connect-flash");
 app.set("view engine", "ejs");
 app.set("views", "views");
@@ -78,6 +80,8 @@ app.use((req, res, next) => {
   res.locals.csrfToken = req.csrfToken();
   next();
 });
+app.use(helmet());
+app.use(compression());
 app.use("/admin", adminRoutes);
 app.use(authRoutes);
 app.use(shopRoutes);
